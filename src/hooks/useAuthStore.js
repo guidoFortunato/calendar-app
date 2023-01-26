@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import { calendarApi } from "../api";
-import { clearErrorMessage, onChecking, onLogin, onLogout } from "../store";
+import { clearErrorMessage, onChecking, onLogin, onLogout, onLogoutCalendar } from "../store";
 
 export const useAuthStore = () => {
   const { status, user, errorMessage } = useSelector((state) => state.auth);
@@ -10,10 +10,10 @@ export const useAuthStore = () => {
     dispatch(onChecking());
 
     try {
-      const resp = await calendarApi.post("/auth", { email, password });
-      localStorage.setItem("token", resp.data.token);
+      const { data } = await calendarApi.post("/auth", { email, password });
+      localStorage.setItem("token", data.token);
       localStorage.setItem("token-init-date", new Date().getTime());
-      dispatch(onLogin({ name: resp.data.name, uid: resp.data.uid }));
+      dispatch(onLogin({ name: data.name, uid: data.uid }));
     } catch (error) {
       dispatch( onLogout( error.response.data?.msg || error.response.data?.errors.password.msg || "Credenciales incorrectas" ));
       // dispatch( onLogout(error.response.data.msg || error.response.data.errors.password.msg ) )
@@ -33,7 +33,6 @@ export const useAuthStore = () => {
         email,
         password,
       });
-      console.log(resp);
       localStorage.setItem("token", resp.data.token);
       localStorage.setItem("token-init-date", new Date().getTime());
       dispatch(onLogin({ name: resp.data.name, uid: resp.data.uid }));
@@ -52,8 +51,8 @@ export const useAuthStore = () => {
 
     try {
       
-      const { data } = calendarApi.get('/auth/renew')
-      localStorage.setItem("token", resp.data.token);
+      const { data } = await calendarApi.get('/auth/renew')
+      localStorage.setItem("token", data.token);
       localStorage.setItem("token-init-date", new Date().getTime());
       dispatch(onLogin({ name: data.name, uid: data.uid }));
 
@@ -65,6 +64,7 @@ export const useAuthStore = () => {
 
   const startLogout = () =>{
     localStorage.clear()
+    dispatch( onLogoutCalendar() )
     dispatch( onLogout() )
   }
 
